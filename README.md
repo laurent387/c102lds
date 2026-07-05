@@ -1,37 +1,35 @@
-# ESP32-S3 + Xiaomi LDS C102
+# c102lds
 
-Repository de travail pour piloter et diagnostiquer un lidar Xiaomi LDS C102 sur ESP32-S3 DevKitC-1 avec Arduino/PlatformIO.
+LDS Xiaomi C102 / X20 reverse engineering on ESP32-S3 with Arduino/PlatformIO.
 
-Le firmware fournit:
+This repository contains the tested firmware and notes needed to:
 
-- PWM moteur sur `GPIO14`
-- RX lidar sur `GPIO18`
-- TX optionnel sur `GPIO17`, desactive par defaut
-- affichage brut HEX/ASCII avec timestamp
-- serveur web avec carte 2D
-- commandes USB pour le moteur, le baud, le PWM et les essais de trame
+- drive the LDS motor with PWM on `GPIO14`
+- read lidar data on `GPIO18`
+- optionally transmit on `GPIO17`
+- inspect the stream in HEX/ASCII with timestamps
+- view a 2D map on the ESP webserver
 
-## Etat du firmware
+## Current firmware
 
-Le projet inclus `src/main_s3.cpp`, qui a ete teste sur une carte ESP32-S3 branchée au LDS.
+The main firmware lives in `src/main_s3.cpp` and has been flashed and tested on an ESP32-S3 DevKitC-1.
 
-Observations utiles:
+Observed working settings:
 
-- le LDS parle sur une trame `55 AA ...`
-- le flux web `/scan` expose les points polaires
-- le moteur tient mieux avec `freq=20000`
-- un `pwm` autour de `500` a donne une rotation exploitable sur le banc
+- protocol starts with `55 AA`
+- motor behaves best with `freq=20000`
+- `pwm 500` was a usable starting point on the bench
 
-## Brochage retenu
+## Wiring
 
 | ESP32-S3 DevKitC-1 | GPIO | LDS |
 | --- | --- | --- |
-| GPIO14 | PWM / MOT_EN | commande moteur |
-| GPIO18 | RX | TX lidar vers ESP |
-| GPIO17 | TX optionnel | RX lidar depuis ESP |
-| GND | GND | masse commune |
+| GPIO14 | PWM / MOT_EN | motor control |
+| GPIO18 | RX | lidar TX to ESP |
+| GPIO17 | TX optional | lidar RX from ESP |
+| GND | GND | common ground |
 
-## Commandes serie USB
+## USB serial commands
 
 ```text
 help
@@ -52,13 +50,11 @@ send start
 send stop
 ```
 
-## Webserver
+## Web server
 
-L'ESP32-S3 publie une page 2D et un endpoint JSON:
-
-- `/` ou `/map` : vue carte
-- `/scan` : donnees de scan et metriques
-- `/cmd?c=...` : envoi de commande
+- `/` or `/map` for the 2D view
+- `/scan` for JSON scan data
+- `/cmd?c=...` for commands
 
 ## Build
 
@@ -68,9 +64,8 @@ pio run -t upload
 pio device monitor -b 115200
 ```
 
-## Fichiers importants
+## More notes
 
-- `src/main_s3.cpp` : firmware principal
-- `docs/pinout.md` : brochage et connexions
-- `docs/protocol.md` : notes sur les trames et le decode
-- `docs/notes.md` : observations terrain
+- `docs/pinout.md`
+- `docs/protocol.md`
+- `docs/notes.md`
